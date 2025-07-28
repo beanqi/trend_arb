@@ -81,7 +81,7 @@ impl GateL1DeepSocketClient {
                                 let formal_price = old_price.load(Ordering::Relaxed);
                                 if formal_price > 0.0 {
                                     let inc = (bid_price - formal_price) / formal_price;
-                                    if inc > 0.005 || inc < -0.005 {
+                                    if inc > 0.03 || inc < -0.03 {
                                         warn!(
                                             "{}-websocket-{}-{}价格变动过大: {:.2}%，当前价格: {}, 之前价格: {}",
                                             MARKET_CODE,
