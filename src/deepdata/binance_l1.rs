@@ -1,8 +1,7 @@
 use futures::StreamExt;
 use log::{error, warn};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::json;
-use sonic_rs::{JsonValueTrait, Value};
 use std::sync::{
     Arc,
     atomic::{AtomicI64, AtomicU64, Ordering},

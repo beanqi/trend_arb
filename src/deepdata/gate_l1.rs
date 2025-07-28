@@ -1,6 +1,6 @@
 use futures::StreamExt;
 use log::{error, warn};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::json;
 use std::sync::{
     atomic::{AtomicI64, Ordering},

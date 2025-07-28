@@ -1,4 +1,4 @@
-use crate::deepdata::{binance_l1::BinanceL1DeepSocketClient, gate_l1::GateL1DeepSocketClient};
+use crate::{deepdata::{binance_l1::BinanceL1DeepSocketClient, gate_l1::GateL1DeepSocketClient}, pairs::{binance::ALL_BINANCE_SYMBOLS, gate::ALL_GATEIO_SYMBOLS}};
 
 pub mod deepdata;
 pub mod pairs;
@@ -10,8 +10,8 @@ async fn main() {
 
     GateL1DeepSocketClient::init_conn().await;
     BinanceL1DeepSocketClient::init_conn().await;
-    let _ = BinanceL1DeepSocketClient::subscribe(vec!["btcusdt".to_string()]).await;
-    // let _ = GateL1DeepSocketClient::subscribe(vec!["BTC_USDT".to_string()]).await;
+    let _ = BinanceL1DeepSocketClient::subscribe(ALL_BINANCE_SYMBOLS.iter().map(|s| s.to_string()).collect()).await;
+    let _ = GateL1DeepSocketClient::subscribe(ALL_GATEIO_SYMBOLS.iter().map(|s| s.to_string()).collect()).await;
 
     tokio::spawn(async move {
         loop {
