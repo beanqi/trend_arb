@@ -23,7 +23,7 @@ async fn main() {
     GateL1DeepSocketClient::init_conn().await;
     BinanceL1DeepSocketClient::init_conn().await;
     let _ = BinanceL1DeepSocketClient::subscribe(
-        ALL_BINANCE_SYMBOLS.iter().map(|s| s.to_string()).collect(),
+        ALL_BINANCE_SYMBOLS.iter().map(|s| s.to_lowercase().to_string()).collect(),
     )
     .await;
     let _ = GateL1DeepSocketClient::subscribe(
