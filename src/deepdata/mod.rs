@@ -1,9 +1,8 @@
 use serde::{Deserialize, Serialize};
-
+use trend_arb::MarketCode;
 
 pub mod binance_l1;
 pub mod gate_l1;
-
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DepthSocketCurrencyPairs {
@@ -22,4 +21,12 @@ pub struct DepthSocketCurrencyPairs {
 
 pub fn get_current_time_secs() -> i64 {
     chrono::Utc::now().timestamp()
+}
+
+/// 归一化交易对，全部转换成大写，并且默认都是usdt的交易对, 只需要返回币的名称
+pub fn normalize_pair(pair: &str, market: &MarketCode) -> String {
+    match market {
+        MarketCode::Binance => pair.trim_end_matches("USDT").to_string(),
+        MarketCode::Gate => pair.trim_end_matches("_USDT").to_string(),
+    }
 }

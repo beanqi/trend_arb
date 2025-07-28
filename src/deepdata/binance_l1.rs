@@ -91,7 +91,7 @@ impl BinanceL1DeepSocketClient {
             "Binance",
             SOCKET_URL,
             true,
-            2,
+            100,
             Arc::new(do_read_fn),
             Box::new(build_param_fn),
             Box::new(delete_fn),

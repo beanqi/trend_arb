@@ -1,6 +1,7 @@
 use crate::deepdata::{binance_l1::BinanceL1DeepSocketClient, gate_l1::GateL1DeepSocketClient};
 
 pub mod deepdata;
+pub mod pairs;
 
 #[tokio::main]
 async fn main() {
