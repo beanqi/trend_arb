@@ -10,10 +10,10 @@ use tokio::sync::Mutex;
 use tungstenite::Message;
 
 use trend_arb::web_socket::ws_connection::{TungWebSocketReader, TungWsConnection};
-
+// 被定义为剧烈波动的阈值
+const VOLATILE_THRESHOLD: f64 = 0.0015; // 0.15%
 const MARKET_CODE: &str = "Binance";
 static SOCKET_URL: &'static str = "wss://stream.binance.com:9443/stream";
-
 static NB_CONN: std::sync::LazyLock<Mutex<Option<Arc<TungWsConnection>>>> =
     std::sync::LazyLock::new(|| Mutex::new(None));
 
@@ -78,7 +78,7 @@ impl BinanceL1DeepSocketClient {
                                 let formal_price = old_price.load(Ordering::Relaxed);
                                 if formal_price > 0.0 {
                                     let inc = (bid_price - formal_price) / formal_price;
-                                    if inc > 0.005 || inc < -0.005 {
+                                    if inc > VOLATILE_THRESHOLD || inc < -VOLATILE_THRESHOLD {
                                         warn!(
                                             "{}-websocket-{}-{}价格变动过大: {:.2}%，当前价格: {}, 之前价格: {}",
                                             MARKET_CODE,

@@ -11,6 +11,7 @@ use tungstenite::Message;
 
 use trend_arb::web_socket::ws_connection::{TungWebSocketReader, TungWsConnection};
 
+const VOLATILE_THRESHOLD: f64 = 0.05; // 被定义为剧烈波动的阈值，5%
 const MARKET_CODE: &str = "Gate";
 static SOCKET_URL: &'static str = "wss://spotws-private.gateapi.io/ws/v4/";
 
@@ -81,7 +82,7 @@ impl GateL1DeepSocketClient {
                                 let formal_price = old_price.load(Ordering::Relaxed);
                                 if formal_price > 0.0 {
                                     let inc = (bid_price - formal_price) / formal_price;
-                                    if inc > 0.03 || inc < -0.03 {
+                                    if inc > VOLATILE_THRESHOLD || inc < -VOLATILE_THRESHOLD {
                                         warn!(
                                             "{}-websocket-{}-{}价格变动过大: {:.2}%，当前价格: {}, 之前价格: {}",
                                             MARKET_CODE,
