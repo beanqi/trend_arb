@@ -100,6 +100,9 @@ impl BinanceL1DeepSocketClient {
                             );
                             continue;
                         }
+                        Message::Ping(_) => {
+                            // 不需要处理
+                        }
                         _ => {
                             error!("{}-websocket{}-收到消息{:?}", MARKET_CODE, idx, msg);
                         }
@@ -112,7 +115,7 @@ impl BinanceL1DeepSocketClient {
             "Binance",
             SOCKET_URL,
             true,
-            100,
+            150,
             Arc::new(do_read_fn),
             Box::new(build_param_fn),
             Box::new(delete_fn),
