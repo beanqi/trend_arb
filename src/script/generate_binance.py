@@ -48,7 +48,7 @@ def generate_rust_code(symbols):
 
 /// 所有币安现货交易对的静态数组 (slice)
 /// A static slice containing all Binance spot trading symbols.
-pub static ALL_SYMBOLS: &[&'static str] = &[\n"""
+pub static ALL_BINANCE_SYMBOLS: &[&'static str] = &[\n"""
 
     # 为了美观，将交易对格式化为每行 5 个
     formatted_symbols = []

@@ -1,9 +1,10 @@
 use futures::StreamExt;
 use log::{error, warn};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::sync::{
-    Arc,
     atomic::{AtomicI64, Ordering},
+    Arc,
 };
 use tokio::sync::Mutex;
 use tungstenite::Message;
@@ -16,8 +17,18 @@ static SOCKET_URL: &'static str = "wss://spotws-private.gateapi.io/ws/v4/";
 static NB_CONN: std::sync::LazyLock<Mutex<Option<Arc<TungWsConnection>>>> =
     std::sync::LazyLock::new(|| Mutex::new(None));
 
-
 static IDX_LAST_MSG_TIME: [AtomicI64; 50] = [const { AtomicI64::new(0) }; 50]; // 最后一次收到消息的时间
+
+#[derive(Debug, Deserialize)]
+struct GateBookTickerResult {
+    s: String, // symbol
+    b: String, // bid price
+}
+
+#[derive(Debug, Deserialize)]
+struct GateBookTickerMessage {
+    result: GateBookTickerResult,
+}
 
 pub struct GateL1DeepSocketClient;
 
@@ -60,12 +71,30 @@ impl GateL1DeepSocketClient {
                         .store(super::get_current_time_secs(), Ordering::SeqCst);
                     match msg {
                         Message::Text(_frame) => {
-                            log::info!(
-                                "{}-websocket-{}收到消息: {}",
-                                MARKET_CODE,
-                                idx,
-                                _frame
-                            );
+                            // 使用 sonic-rs 快速解析，只提取需要的字段
+                            if let Ok(msg) = sonic_rs::from_str::<GateBookTickerMessage>(&_frame) {
+                                let bid_price: f64 = lexical_core::parse(msg.result.b.as_bytes())
+                                    .unwrap_or_default();
+                                let symbol = msg.result.s;
+
+                                let old_price = super::utils::GATE_DEPTH.get(symbol.as_str()).unwrap();
+                                let formal_price = old_price.load(Ordering::Relaxed);
+                                if formal_price > 0.0 {
+                                    let inc = (bid_price - formal_price) / formal_price;
+                                    if inc > 0.005 || inc < -0.005 {
+                                        warn!(
+                                            "{}-websocket-{}-{}价格变动过大: {:.2}%，当前价格: {}, 之前价格: {}",
+                                            MARKET_CODE,
+                                            idx,
+                                            symbol,
+                                            inc * 100.0,
+                                            bid_price,
+                                            formal_price
+                                        );
+                                    }
+                                }
+                                old_price.store(bid_price, Ordering::Relaxed);
+                            }
                         }
                         Message::Close(reason) => {
                             error!(
@@ -99,7 +128,7 @@ impl GateL1DeepSocketClient {
         drop(lock);
     }
 
-        /**
+    /**
      * 获取订阅/取消订阅的消息内容
      */
     fn get_sub_or_unsub_data(symbol: &Vec<String>, _evt: &str) -> String {

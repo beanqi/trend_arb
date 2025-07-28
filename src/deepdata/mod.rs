@@ -3,6 +3,7 @@ use trend_arb::MarketCode;
 
 pub mod binance_l1;
 pub mod gate_l1;
+pub mod utils;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DepthSocketCurrencyPairs {

@@ -1,6 +1,8 @@
 use futures::StreamExt;
 use log::{error, warn};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
+use sonic_rs::{JsonValueTrait, Value};
 use std::sync::{
     Arc,
     atomic::{AtomicI64, AtomicU64, Ordering},
@@ -65,12 +67,32 @@ impl BinanceL1DeepSocketClient {
                         .store(super::get_current_time_secs(), Ordering::SeqCst);
                     match msg {
                         Message::Text(_frame) => {
-                            log::info!(
-                                "{}-websocket-{}收到消息: {}",
-                                MARKET_CODE,
-                                idx,
-                                _frame
-                            );
+                            // 使用 sonic-rs 快速解析，只提取需要的字段
+                            if let Ok(msg) = sonic_rs::from_str::<BinanceBookTickerMessage>(&_frame)
+                            {
+                                let bid_price: f64 =
+                                    lexical_core::parse(msg.data.b.as_bytes()).unwrap_or_default();
+                                let symbol = msg.data.s;
+
+                                let old_price =
+                                    super::utils::BINANCE_DEPTH.get(symbol.as_str()).unwrap();
+                                let formal_price = old_price.load(Ordering::Relaxed);
+                                if formal_price > 0.0 {
+                                    let inc = (bid_price - formal_price) / formal_price;
+                                    if inc > 0.005 || inc < -0.005 {
+                                        warn!(
+                                            "{}-websocket-{}-{}价格变动过大: {:.2}%，当前价格: {}, 之前价格: {}",
+                                            MARKET_CODE,
+                                            idx,
+                                            symbol,
+                                            inc * 100.0,
+                                            bid_price,
+                                            formal_price
+                                        );
+                                    }
+                                }
+                                old_price.store(bid_price, Ordering::Relaxed);
+                            }
                         }
                         Message::Close(reason) => {
                             error!(
@@ -141,4 +163,15 @@ impl BinanceL1DeepSocketClient {
             }
         }
     }
+}
+
+#[derive(Debug, Deserialize)]
+struct BinanceBookTickerData {
+    s: String, // symbol
+    b: String, // bid price
+}
+
+#[derive(Debug, Deserialize)]
+struct BinanceBookTickerMessage {
+    data: BinanceBookTickerData,
 }

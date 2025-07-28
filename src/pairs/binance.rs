@@ -1,3 +1,4 @@
+
 // ===================================================================================
 // 此文件由脚本自动生成，请勿手动修改。
 //
@@ -9,7 +10,7 @@
 
 /// 所有币安现货交易对的静态数组 (slice)
 /// A static slice containing all Binance spot trading symbols.
-pub static ALL_SYMBOLS: &[&'static str] = &[
+pub static ALL_BINANCE_SYMBOLS: &[&'static str] = &[
     "1000CATBNB", "1000CATFDUSD", "1000CATTRY", "1000CATUSDC", "1000CATUSDT",
     "1000CHEEMSUSDC", "1000CHEEMSUSDT", "1000SATSFDUSD", "1000SATSTRY", "1000SATSUSDC",
     "1000SATSUSDT", "1INCHBTC", "1INCHBUSD", "1INCHDOWNUSDT", "1INCHUPUSDT",
