@@ -11,7 +11,7 @@ use tungstenite::Message;
 
 use trend_arb::web_socket::ws_connection::{TungWebSocketReader, TungWsConnection};
 // 被定义为剧烈波动的阈值
-const VOLATILE_THRESHOLD: f64 = 0.0015; // 0.15%
+const VOLATILE_THRESHOLD: f64 = 0.015; // 1.5%
 const MARKET_CODE: &str = "Binance";
 static SOCKET_URL: &'static str = "wss://stream.binance.com:9443/stream";
 static NB_CONN: std::sync::LazyLock<Mutex<Option<Arc<TungWsConnection>>>> =
