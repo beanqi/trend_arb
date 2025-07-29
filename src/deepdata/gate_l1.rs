@@ -114,7 +114,9 @@ impl GateL1DeepSocketClient {
                 }
             })
         };
-        let delete_fn = |_pair: &str| {};
+        let delete_fn = |_pair: &str| {
+            super::utils::GATE_DEPTH.get(_pair).unwrap().store(0.0, Ordering::Relaxed);
+        };
         let nb_conn = TungWsConnection::new(
             MARKET_CODE,
             SOCKET_URL,
