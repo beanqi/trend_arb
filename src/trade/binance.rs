@@ -33,6 +33,16 @@ pub enum OrderSide {
     Sell,
 }
 
+impl OrderSide {
+    pub fn as_str(&self) -> &str {
+        match self {
+            OrderSide::Buy => "BUY",
+            OrderSide::Sell => "SELL",
+        }
+    }
+    
+}
+
 /// Time in Force
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
@@ -40,6 +50,16 @@ pub enum TimeInForce {
     Gtc, // Good Till Cancel
     Ioc, // Immediate or Cancel
     Fok, // Fill or Kill
+}
+
+impl TimeInForce {
+    pub fn as_str(&self) -> &str {
+        match self {
+            TimeInForce::Gtc => "GTC",
+            TimeInForce::Ioc => "IOC",
+            TimeInForce::Fok => "FOK",
+        }
+    }
 }
 
 /// 订单响应类型
@@ -419,9 +439,9 @@ impl BinanceWsTradeClient {
         // 构建签名参数
         let mut params = vec![
             ("symbol", symbol.to_string()),
-            ("side", sonic_rs::to_string(&side)?),
+            ("side", side.as_str().to_string()),
             ("type", "LIMIT".to_string()),
-            ("timeInForce", sonic_rs::to_string(&time_in_force)?),
+            ("timeInForce", time_in_force.as_str().to_string()),
             ("price", price.to_string()),
             ("quantity", quantity.to_string()),
             ("apiKey", self.api_key.clone()),
