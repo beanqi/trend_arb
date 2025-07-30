@@ -6,6 +6,7 @@ use chrono::Local;
 use std::io::Write;
 
 pub mod deepdata;
+pub mod trade;
 pub mod pairs;
 
 #[tokio::main]

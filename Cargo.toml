@@ -11,7 +11,7 @@ tokio-rustls = "0.26.2"
 tokio = { version = "1.46.1", features = ["full"] }
 tokio-tungstenite = { version = "0.27.0", features = ["native-tls", "rustls-tls-native-roots"] }
 tungstenite = { version = "0.27.0", features = ["native-tls", "deflate"] }
-rustls = "0.23.29"
+rustls = "0.23.31"
 webpki-roots = "1.0.2"
 url = "2.5.4"
 chrono = "0.4.41"
@@ -25,6 +25,9 @@ base64 = "0.22.1"
 hmac = "0.12.1"
 sha2 = "0.10.9"
 memchr = "2.7.5"
+hex = "0.4.3"
+anyhow = "1.0.98"
+futures-util = "0.3.31"
 [dependencies.uuid]
 version = "1.17.0"
 features = [
