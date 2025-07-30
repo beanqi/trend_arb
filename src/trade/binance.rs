@@ -1,5 +1,4 @@
 use anyhow::{anyhow, Result};
-use chrono::Utc;
 use futures_util::{SinkExt, StreamExt};
 use hmac::{Hmac, Mac};
 use log::{debug, error, info, warn};
@@ -414,7 +413,7 @@ impl BinanceWsTradeClient {
         client_order_id: Option<String>,
         recv_window: Option<u64>,
     ) -> Result<WebSocketResponse<OrderResponse>> {
-        let timestamp = Utc::now().timestamp_millis() as u64;
+        let timestamp = chrono::Local::now().timestamp_millis() as u64;
         let time_in_force = time_in_force.unwrap_or(TimeInForce::Gtc);
         
         // 构建签名参数
@@ -478,7 +477,7 @@ impl BinanceWsTradeClient {
             return Err(anyhow!("Either quantity or quoteOrderQty must be specified for market order"));
         }
 
-        let timestamp = Utc::now().timestamp_millis() as u64;
+        let timestamp = chrono::Local::now().timestamp_millis() as u64;
         
         // 构建签名参数
         let mut params = vec![
