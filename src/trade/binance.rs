@@ -504,7 +504,7 @@ impl BinanceWsTradeClient {
         // 构建签名参数
         let mut params = vec![
             ("symbol", symbol.to_string()),
-            ("side", sonic_rs::to_string(&side)?),
+            ("side", side.as_str().to_string()),
             ("type", "MARKET".to_string()),
             ("newOrderRespType", "RESULT".to_string()),
             ("apiKey", self.api_key.clone()),
