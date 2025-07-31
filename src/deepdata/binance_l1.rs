@@ -1,25 +1,38 @@
 use futures::StreamExt;
 use log::{error, warn};
+use moka::sync::Cache;
 use serde::Deserialize;
 use serde_json::json;
 use std::sync::{
-    Arc,
+    Arc, LazyLock,
     atomic::{AtomicI64, AtomicU64, Ordering},
 };
 use tokio::sync::Mutex;
 use tungstenite::Message;
 
-use trend_arb::web_socket::ws_connection::{TungWebSocketReader, TungWsConnection};
+use trend_arb::{
+    trade::binance::OrderSide,
+    web_socket::ws_connection::{TungWebSocketReader, TungWsConnection},
+};
+
+use crate::BINANCE_TRADE_CLIENT;
 // 被定义为剧烈波动的阈值
-const VOLATILE_THRESHOLD: f64 = 0.015; // 1.5%
+const VOLATILE_THRESHOLD: f64 = 0.05; // 5%
 const MARKET_CODE: &str = "Binance";
 static SOCKET_URL: &'static str = "wss://stream.binance.com:9443/stream";
-static NB_CONN: std::sync::LazyLock<Mutex<Option<Arc<TungWsConnection>>>> =
-    std::sync::LazyLock::new(|| Mutex::new(None));
+static NB_CONN: LazyLock<Mutex<Option<Arc<TungWsConnection>>>> = LazyLock::new(|| Mutex::new(None)); // 连接对象管理工具
 
-static AUTO_INCRE_ID: AtomicU64 = AtomicU64::new(0);
+static AUTO_INCRE_ID: AtomicU64 = AtomicU64::new(0); // 自动递增的ID
 
 static IDX_LAST_MSG_TIME: [AtomicI64; 50] = [const { AtomicI64::new(0) }; 50]; // 最后一次收到消息的时间
+
+// 控制下单的集合，需要控制同一个交易对，5小时内只能下单一次
+static ORDER_CONTROL: LazyLock<Cache<String, ()>> = LazyLock::new(|| {
+    Cache::builder()
+        .max_capacity(1000)
+        .time_to_live(std::time::Duration::from_secs(60 * 60 * 5)) // 5小时
+        .build()
+});
 
 pub struct BinanceL1DeepSocketClient;
 
@@ -73,23 +86,10 @@ impl BinanceL1DeepSocketClient {
                                     lexical_core::parse(msg.data.b.as_bytes()).unwrap_or_default();
                                 let symbol = msg.data.s;
 
+                                Self::handle_volatile_price(&symbol, bid_price, idx).await;
+
                                 let old_price =
                                     super::utils::BINANCE_DEPTH.get(symbol.as_str()).unwrap();
-                                let formal_price = old_price.load(Ordering::Relaxed);
-                                if formal_price > 0.0 {
-                                    let inc = (bid_price - formal_price) / formal_price;
-                                    if inc > VOLATILE_THRESHOLD || inc < -VOLATILE_THRESHOLD {
-                                        warn!(
-                                            "{}-websocket-{}-{}价格变动过大: {:.2}%，当前价格: {}, 之前价格: {}",
-                                            MARKET_CODE,
-                                            idx,
-                                            symbol,
-                                            inc * 100.0,
-                                            bid_price,
-                                            formal_price
-                                        );
-                                    }
-                                }
                                 old_price.store(bid_price, Ordering::Relaxed);
                             }
                         }
@@ -111,7 +111,10 @@ impl BinanceL1DeepSocketClient {
             })
         };
         let delete_fn = |_pair: &str| {
-            super::utils::BINANCE_DEPTH.get(_pair).unwrap().store(0.0, Ordering::Relaxed);
+            super::utils::BINANCE_DEPTH
+                .get(_pair)
+                .unwrap()
+                .store(0.0, Ordering::Relaxed);
         };
         let nb_conn = TungWsConnection::new(
             "Binance",
@@ -166,6 +169,64 @@ impl BinanceL1DeepSocketClient {
                 }
             }
         }
+    }
+
+    /// 处理价格剧烈波动：若满足条件则下单
+    async fn handle_volatile_price(
+        symbol: &str,
+        bid_price: f64,
+        idx: u8,
+    ) {
+        let old_price = super::utils::BINANCE_DEPTH.get(symbol).unwrap();
+        let formal_price = old_price.load(Ordering::Relaxed);
+        if formal_price <= 0.0 {
+            old_price.store(bid_price, Ordering::Relaxed);
+            return;
+        }
+
+        let inc = (bid_price - formal_price) / formal_price;
+        if inc <= VOLATILE_THRESHOLD {
+            return;
+        }
+
+        warn!(
+            "{}-websocket-{}-{}价格变动过大: {:.2}%，当前价格: {}, 之前价格: {}",
+            MARKET_CODE,
+            idx,
+            symbol,
+            inc * 100.0,
+            bid_price,
+            formal_price
+        );
+
+        if ORDER_CONTROL.get(symbol).is_some() {
+            warn!(
+                "{}-websocket-{}-{}价格变动过大，但已经下过单，跳过",
+                MARKET_CODE, idx, symbol
+            );
+            return;
+        }
+
+        // 记录下单
+        ORDER_CONTROL.insert(symbol.to_owned(), ());
+
+        let res = BINANCE_TRADE_CLIENT
+            .place_market_order(
+                symbol,
+                OrderSide::Buy,
+                None,
+                Some("10.0"),
+                None,
+                None,
+            )
+            .await;
+        log::warn!(
+            "{}-websocket-{}-{}下单结果: {:?}",
+            MARKET_CODE,
+            idx,
+            symbol,
+            res
+        );
     }
 }
 

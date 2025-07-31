@@ -28,6 +28,7 @@ memchr = "2.7.5"
 hex = "0.4.3"
 anyhow = "1.0.98"
 futures-util = "0.3.31"
+moka = { version = "0.12", features = ["sync"] }
 [dependencies.uuid]
 version = "1.17.0"
 features = [
