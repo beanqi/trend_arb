@@ -58,6 +58,10 @@ async fn main() {
         }
     });
 
+    // 检查连接状态
+    BINANCE_TRADE_CLIENT.get_connection_status().await;
+    tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+    // 执行一个限价单，测试连接和下单功能
     let res = BINANCE_TRADE_CLIENT
         .place_limit_order(
             "TRXUSDT",
