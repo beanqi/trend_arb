@@ -229,8 +229,8 @@ impl BinanceWsTradeClient {
             connection_status: Arc::new(RwLock::new(ConnectionStatus::Disconnected)),
             pending_requests: Arc::new(Mutex::new(std::collections::HashMap::new())),
             reconnect_attempts: Arc::new(Mutex::new(0)),
-            max_reconnect_attempts: 10,
-            reconnect_delay: Duration::from_secs(5),
+            max_reconnect_attempts: 6000,
+            reconnect_delay: Duration::from_secs(1),
             message_sender: Arc::new(Mutex::new(None)),
         }
     }
