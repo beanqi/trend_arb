@@ -444,9 +444,9 @@ impl BinanceWsTradeClient {
             ("timeInForce", time_in_force.as_str().to_string()),
             ("price", price.to_string()),
             ("quantity", quantity.to_string()),
+            ("newOrderRespType", "RESULT".to_string()),
             ("apiKey", self.api_key.clone()),
             ("timestamp", timestamp.to_string()),
-            ("newOrderRespType", "RESULT".to_string()),
         ];
 
         if let Some(client_id) = &client_order_id {
