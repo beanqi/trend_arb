@@ -505,9 +505,9 @@ impl BinanceWsTradeClient {
             ("symbol", symbol.to_string()),
             ("side", sonic_rs::to_string(&side)?),
             ("type", "MARKET".to_string()),
+            ("newOrderRespType", "RESULT".to_string()),
             ("apiKey", self.api_key.clone()),
             ("timestamp", timestamp.to_string()),
-            ("newOrderRespType", "RESULT".to_string()),
         ];
 
         if let Some(qty) = quantity {

@@ -11,7 +11,7 @@ pub mod pairs;
 
 #[tokio::main]
 async fn main() {
-    unsafe { std::env::set_var("RUST_LOG", "info,trend_arb=debug") };
+    unsafe { std::env::set_var("RUST_LOG", "debug,trend_arb=debug") };
 
     env_logger::Builder::from_default_env()
         .format(|buf, record| {
