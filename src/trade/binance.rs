@@ -458,6 +458,7 @@ impl BinanceWsTradeClient {
         }
 
         // 生成查询字符串并签名
+        params.sort_by(|a, b| a.0.cmp(&b.0));
         let query_string = params
             .iter()
             .map(|(k, v)| format!("{}={}", k, v))
@@ -527,6 +528,7 @@ impl BinanceWsTradeClient {
         }
 
         // 生成查询字符串并签名
+        params.sort_by(|a, b| a.0.cmp(&b.0));
         let query_string = params
             .iter()
             .map(|(k, v)| format!("{}={}", k, v))
@@ -577,9 +579,9 @@ mod tests {
             true,
         );
 
-        let query_string = "symbol=BTCUSDT&side=BUY&type=LIMIT&timeInForce=GTC&quantity=1&price=23416.10000000&apiKey=test_api_key&timestamp=1660801715431";
+        let query_string = "symbol=TRXUSDT&side=BUY&type=LIMIT&timeInForce=GTC&price=0.1&quantity=51&newOrderRespType=RESULT&apiKey=T65zTIdC9rZvdamYqAW4CKHN30xYYof1z1QsEoDKXLgZtCQyNPkq1Zj6nAG9tMJU&timestamp=1753941439500";
         let signature = client.generate_signature(query_string).unwrap();
-        
+        println!("Generated signature: {}", signature);
         // 验证签名不为空
         assert!(!signature.is_empty());
         assert_eq!(signature.len(), 64); // HMAC-SHA256 produces 64 character hex string
