@@ -53,9 +53,9 @@ async fn main() -> Result<()> {
     match client
         .place_market_order(
             "BTCUSDT",
-            OrderSide::Sell,
+            OrderSide::Buy,
             None, // 数量
-            Some("2"), // 下单金额
+            Some("1"), // 下单金额
             None,          // 客户端订单ID
             None,          // recv_window
         )
