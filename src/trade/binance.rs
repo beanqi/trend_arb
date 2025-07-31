@@ -506,6 +506,7 @@ impl BinanceWsTradeClient {
             ("type", "MARKET".to_string()),
             ("apiKey", self.api_key.clone()),
             ("timestamp", timestamp.to_string()),
+            ("newOrderRespType", "RESULT".to_string()),
         ];
 
         if let Some(qty) = quantity {
@@ -540,7 +541,7 @@ impl BinanceWsTradeClient {
             quantity: quantity.map(|s| s.to_string()),
             quote_order_qty: quote_order_qty.map(|s| s.to_string()),
             new_client_order_id: client_order_id,
-            new_order_resp_type: Some(NewOrderRespType::Full),
+            new_order_resp_type: Some(NewOrderRespType::Result),
             api_key: self.api_key.clone(),
             timestamp,
             signature,
