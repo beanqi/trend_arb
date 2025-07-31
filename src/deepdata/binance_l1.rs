@@ -11,7 +11,7 @@ use tokio::sync::Mutex;
 use tungstenite::Message;
 
 use trend_arb::{
-    trade::binance::OrderSide,
+    trade::binance::BnbOrderSide,
     web_socket::ws_connection::{TungWebSocketReader, TungWsConnection},
 };
 
@@ -213,7 +213,7 @@ impl BinanceL1DeepSocketClient {
         let res = BINANCE_TRADE_CLIENT
             .place_market_order(
                 symbol,
-                OrderSide::Buy,
+                BnbOrderSide::Buy,
                 None,
                 Some("10.0"),
                 None,

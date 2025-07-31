@@ -2,7 +2,7 @@ use anyhow::Result;
 use log::{error, info, warn};
 use std::time::Duration;
 use tokio::time::sleep;
-use trend_arb::trade::binance::{BinanceWsTradeClient, ConnectionStatus, OrderSide, TimeInForce};
+use trend_arb::trade::binance::{BinanceWsTradeClient, BnbOrderSide, BnbTimeInForce, ConnectionStatus};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -76,10 +76,10 @@ async fn demo_trading_operations(client: &BinanceWsTradeClient) -> Result<()> {
     match client
         .place_limit_order(
             "BTCUSDT",
-            OrderSide::Buy,
+            BnbOrderSide::Buy,
             "15000.00",  // 远低于市价，避免实际成交
             "0.001",
-            Some(TimeInForce::Gtc),
+            Some(BnbTimeInForce::Gtc),
             Some("demo-limit-buy-001".to_string()),
             Some(5000),  // 5秒接收窗口
         )
@@ -105,10 +105,10 @@ async fn demo_trading_operations(client: &BinanceWsTradeClient) -> Result<()> {
     match client
         .place_limit_order(
             "BTCUSDT",
-            OrderSide::Sell,
+            BnbOrderSide::Sell,
             "100000.00",  // 远高于市价，避免实际成交
             "0.001",
-            Some(TimeInForce::Ioc), // Immediate or Cancel
+            Some(BnbTimeInForce::Ioc), // Immediate or Cancel
             Some("demo-limit-sell-001".to_string()),
             None,
         )
@@ -134,7 +134,7 @@ async fn demo_trading_operations(client: &BinanceWsTradeClient) -> Result<()> {
     match client
         .place_market_order(
             "BTCUSDT",
-            OrderSide::Buy,
+            BnbOrderSide::Buy,
             None,
             Some("10.00"), // 用10 USDT购买BTC
             Some("demo-market-buy-quote-001".to_string()),
@@ -169,7 +169,7 @@ async fn demo_trading_operations(client: &BinanceWsTradeClient) -> Result<()> {
     match client
         .place_market_order(
             "BTCUSDT",
-            OrderSide::Sell,
+            BnbOrderSide::Sell,
             Some("0.0001"), // 卖出0.0001 BTC
             None,
             Some("demo-market-sell-base-001".to_string()),

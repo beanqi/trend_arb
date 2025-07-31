@@ -1,6 +1,6 @@
 use anyhow::Result;
 use log::info;
-use trend_arb::trade::binance::{BinanceWsTradeClient, OrderSide, TimeInForce};
+use trend_arb::trade::binance::{BinanceWsTradeClient, BnbOrderSide, BnbTimeInForce};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -31,10 +31,10 @@ async fn main() -> Result<()> {
     match client
         .place_limit_order(
             "TRXUSDT",
-            OrderSide::Buy,
+            BnbOrderSide::Buy,
             "0.1",  // 价格
             "51",     // 数量
-            Some(TimeInForce::Gtc),
+            Some(BnbTimeInForce::Gtc),
             None,        // 客户端订单ID
             None,        // recv_window
         )
@@ -53,7 +53,7 @@ async fn main() -> Result<()> {
     match client
         .place_market_order(
             "BTCUSDT",
-            OrderSide::Buy,
+            BnbOrderSide::Buy,
             None, // 数量
             Some("1"), // 下单金额
             None,          // 客户端订单ID

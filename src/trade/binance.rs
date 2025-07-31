@@ -20,7 +20,7 @@ const WS_API_TESTNET_URL: &str = "wss://ws-api.testnet.binance.vision/ws-api/v3"
 /// 订单类型
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
-pub enum OrderType {
+pub enum BnbOrderType {
     Limit,
     Market,
 }
@@ -28,16 +28,16 @@ pub enum OrderType {
 /// 订单方向
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
-pub enum OrderSide {
+pub enum BnbOrderSide {
     Buy,
     Sell,
 }
 
-impl OrderSide {
+impl BnbOrderSide {
     pub fn as_str(&self) -> &str {
         match self {
-            OrderSide::Buy => "BUY",
-            OrderSide::Sell => "SELL",
+            BnbOrderSide::Buy => "BUY",
+            BnbOrderSide::Sell => "SELL",
         }
     }
     
@@ -46,18 +46,18 @@ impl OrderSide {
 /// Time in Force
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
-pub enum TimeInForce {
+pub enum BnbTimeInForce {
     Gtc, // Good Till Cancel
     Ioc, // Immediate or Cancel
     Fok, // Fill or Kill
 }
 
-impl TimeInForce {
+impl BnbTimeInForce {
     pub fn as_str(&self) -> &str {
         match self {
-            TimeInForce::Gtc => "GTC",
-            TimeInForce::Ioc => "IOC",
-            TimeInForce::Fok => "FOK",
+            BnbTimeInForce::Gtc => "GTC",
+            BnbTimeInForce::Ioc => "IOC",
+            BnbTimeInForce::Fok => "FOK",
         }
     }
 }
@@ -65,7 +65,7 @@ impl TimeInForce {
 /// 订单响应类型
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
-pub enum NewOrderRespType {
+pub enum BnbNewOrderRespType {
     Ack,
     Result,
     Full,
@@ -74,18 +74,18 @@ pub enum NewOrderRespType {
 /// 限价单请求参数
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct LimitOrderRequest {
+pub struct BnbLimitOrderRequest {
     pub symbol: String,
-    pub side: OrderSide,
+    pub side: BnbOrderSide,
     #[serde(rename = "type")]
-    pub order_type: OrderType,
-    pub time_in_force: TimeInForce,
+    pub order_type: BnbOrderType,
+    pub time_in_force: BnbTimeInForce,
     pub price: String,
     pub quantity: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub new_client_order_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_order_resp_type: Option<NewOrderRespType>,
+    pub new_order_resp_type: Option<BnbNewOrderRespType>,
     pub api_key: String,
     pub timestamp: u64,
     pub signature: String,
@@ -96,11 +96,11 @@ pub struct LimitOrderRequest {
 /// 市价单请求参数
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct MarketOrderRequest {
+pub struct BnbMarketOrderRequest {
     pub symbol: String,
-    pub side: OrderSide,
+    pub side: BnbOrderSide,
     #[serde(rename = "type")]
-    pub order_type: OrderType,
+    pub order_type: BnbOrderType,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub quantity: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -108,7 +108,7 @@ pub struct MarketOrderRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub new_client_order_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub new_order_resp_type: Option<NewOrderRespType>,
+    pub new_order_resp_type: Option<BnbNewOrderRespType>,
     pub api_key: String,
     pub timestamp: u64,
     pub signature: String,
@@ -118,7 +118,7 @@ pub struct MarketOrderRequest {
 
 /// WebSocket请求格式
 #[derive(Debug, Clone, Serialize)]
-pub struct WebSocketRequest<T> {
+pub struct BnbWebSocketRequest<T> {
     pub id: String,
     pub method: String,
     pub params: T,
@@ -127,7 +127,7 @@ pub struct WebSocketRequest<T> {
 /// 订单响应基础信息
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct OrderResponse {
+pub struct BnbOrderResponse {
     pub symbol: String,
     pub order_id: u64,
     pub order_list_id: i64,
@@ -151,13 +151,13 @@ pub struct OrderResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub self_trade_prevention_mode: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub fills: Option<Vec<Fill>>,
+    pub fills: Option<Vec<BnbFill>>,
 }
 
 /// 成交详情
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Fill {
+pub struct BnbFill {
     pub price: String,
     pub qty: String,
     pub commission: String,
@@ -168,7 +168,7 @@ pub struct Fill {
 /// Rate Limit 信息
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct RateLimit {
+pub struct BnbRateLimit {
     pub rate_limit_type: String,
     pub interval: String,
     pub interval_num: u32,
@@ -178,20 +178,20 @@ pub struct RateLimit {
 
 /// WebSocket响应格式
 #[derive(Debug, Clone, Deserialize)]
-pub struct WebSocketResponse<T> {
+pub struct BnbWebSocketResponse<T> {
     pub id: String,
     pub status: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<T>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<ApiError>,
+    pub error: Option<BnbApiError>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rate_limits: Option<Vec<RateLimit>>,
+    pub rate_limits: Option<Vec<BnbRateLimit>>,
 }
 
 /// API错误信息
 #[derive(Debug, Clone, Deserialize)]
-pub struct ApiError {
+pub struct BnbApiError {
     pub code: i32,
     pub msg: String,
 }
@@ -357,7 +357,7 @@ impl BinanceWsTradeClient {
     }
 
     /// 发送WebSocket请求并等待响应
-    async fn send_request<T, R>(&self, method: &str, params: T) -> Result<WebSocketResponse<R>>
+    async fn send_request<T, R>(&self, method: &str, params: T) -> Result<BnbWebSocketResponse<R>>
     where
         T: Serialize,
         R: for<'de> Deserialize<'de>,
@@ -368,7 +368,7 @@ impl BinanceWsTradeClient {
         }
 
         let request_id = Uuid::new_v4().to_string();
-        let request = WebSocketRequest {
+        let request = BnbWebSocketRequest {
             id: request_id.clone(),
             method: method.to_string(),
             params,
@@ -401,7 +401,7 @@ impl BinanceWsTradeClient {
             .await?
             .ok_or_else(|| anyhow!("No response received"))?;
 
-        let response: WebSocketResponse<R> = sonic_rs::from_str(&response_text)?;
+        let response: BnbWebSocketResponse<R> = sonic_rs::from_str(&response_text)?;
         
         if response.status != 200 {
             if let Some(error) = response.error {
@@ -426,15 +426,15 @@ impl BinanceWsTradeClient {
     pub async fn place_limit_order(
         &self,
         symbol: &str,
-        side: OrderSide,
+        side: BnbOrderSide,
         price: &str,
         quantity: &str,
-        time_in_force: Option<TimeInForce>,
+        time_in_force: Option<BnbTimeInForce>,
         client_order_id: Option<String>,
         recv_window: Option<u64>,
-    ) -> Result<WebSocketResponse<OrderResponse>> {
+    ) -> Result<BnbWebSocketResponse<BnbOrderResponse>> {
         let timestamp = chrono::Local::now().timestamp_millis() as u64;
-        let time_in_force = time_in_force.unwrap_or(TimeInForce::Gtc);
+        let time_in_force = time_in_force.unwrap_or(BnbTimeInForce::Gtc);
         
         // 构建签名参数
         let mut params = vec![
@@ -467,15 +467,15 @@ impl BinanceWsTradeClient {
 
         let signature = self.generate_signature(&query_string)?;
 
-        let request = LimitOrderRequest {
+        let request = BnbLimitOrderRequest {
             symbol: symbol.to_string(),
             side,
-            order_type: OrderType::Limit,
+            order_type: BnbOrderType::Limit,
             time_in_force,
             price: price.to_string(),
             quantity: quantity.to_string(),
             new_client_order_id: client_order_id,
-            new_order_resp_type: Some(NewOrderRespType::Result),
+            new_order_resp_type: Some(BnbNewOrderRespType::Result),
             api_key: self.api_key.clone(),
             timestamp,
             signature,
@@ -489,12 +489,12 @@ impl BinanceWsTradeClient {
     pub async fn place_market_order(
         &self,
         symbol: &str,
-        side: OrderSide,
+        side: BnbOrderSide,
         quantity: Option<&str>,
         quote_order_qty: Option<&str>,
         client_order_id: Option<String>,
         recv_window: Option<u64>,
-    ) -> Result<WebSocketResponse<OrderResponse>> {
+    ) -> Result<BnbWebSocketResponse<BnbOrderResponse>> {
         if quantity.is_none() && quote_order_qty.is_none() {
             return Err(anyhow!("Either quantity or quoteOrderQty must be specified for market order"));
         }
@@ -537,14 +537,14 @@ impl BinanceWsTradeClient {
 
         let signature = self.generate_signature(&query_string)?;
 
-        let request = MarketOrderRequest {
+        let request = BnbMarketOrderRequest {
             symbol: symbol.to_string(),
             side,
-            order_type: OrderType::Market,
+            order_type: BnbOrderType::Market,
             quantity: quantity.map(|s| s.to_string()),
             quote_order_qty: quote_order_qty.map(|s| s.to_string()),
             new_client_order_id: client_order_id,
-            new_order_resp_type: Some(NewOrderRespType::Result),
+            new_order_resp_type: Some(BnbNewOrderRespType::Result),
             api_key: self.api_key.clone(),
             timestamp,
             signature,

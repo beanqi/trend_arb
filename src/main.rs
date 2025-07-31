@@ -1,7 +1,7 @@
 use crate::{deepdata::binance_l1::BinanceL1DeepSocketClient, pairs::binance::ALL_BINANCE_SYMBOLS};
 use chrono::Local;
 use std::{io::Write, sync::LazyLock};
-use trend_arb::trade::binance::{BinanceWsTradeClient, OrderSide, TimeInForce};
+use trend_arb::trade::binance::{BinanceWsTradeClient, BnbOrderSide, BnbTimeInForce};
 
 pub mod deepdata;
 pub mod pairs;
@@ -65,10 +65,10 @@ async fn main() {
     let res = BINANCE_TRADE_CLIENT
         .place_limit_order(
             "TRXUSDT",
-            OrderSide::Buy,
+            BnbOrderSide::Buy,
             "0.1", // 价格
             "51",  // 数量
-            Some(TimeInForce::Gtc),
+            Some(BnbTimeInForce::Gtc),
             None, // 客户端订单ID
             None, // recv_window
         )

@@ -75,10 +75,10 @@ async fn main() -> Result<()> {
 let response = client
     .place_limit_order(
         "BTCUSDT",                    // 交易对
-        OrderSide::Buy,               // 买入
+        BnbOrderSide::Buy,               // 买入
         "20000.00",                   // 价格
         "0.001",                      // 数量
-        Some(TimeInForce::Gtc),       // 有效期（Good Till Cancel）
+        Some(BnbTimeInForce::Gtc),       // 有效期（Good Till Cancel）
         None,                         // 客户端订单ID（可选）
         None,                         // recv_window（可选）
     )
@@ -94,7 +94,7 @@ println!("Order placed: {:?}", response);
 let response = client
     .place_market_order(
         "BTCUSDT",                    // 交易对
-        OrderSide::Sell,              // 卖出
+        BnbOrderSide::Sell,              // 卖出
         Some("0.001"),                // 数量
         None,                         // quote_order_qty（二选一）
         None,                         // 客户端订单ID（可选）
@@ -106,13 +106,15 @@ let response = client
 let response = client
     .place_market_order(
         "BTCUSDT",                    // 交易对
-        OrderSide::Buy,               // 买入
+        BnbOrderSide::Buy,               // 买入
         None,                         // 数量
         Some("100.00"),               // quote_order_qty（用USDT购买）
         None,                         // 客户端订单ID（可选）
         None,                         // recv_window（可选）
     )
     .await?;
+
+println!("Market order placed: {:?}", response);
 ```
 
 ## 环境变量配置
