@@ -49,25 +49,25 @@ async fn main() -> Result<()> {
     }
 
     // 示例：下市价单
-    info!("Placing market order...");
-    match client
-        .place_market_order(
-            "BTCUSDT",
-            OrderSide::Sell,
-            Some("0.001"), // 数量
-            None,          // quote_order_qty
-            None,          // 客户端订单ID
-            None,          // recv_window
-        )
-        .await
-    {
-        Ok(response) => {
-            info!("Market order placed successfully: {:?}", response);
-        }
-        Err(e) => {
-            log::error!("Failed to place market order: {}", e);
-        }
-    }
+    // info!("Placing market order...");
+    // match client
+    //     .place_market_order(
+    //         "BTCUSDT",
+    //         OrderSide::Sell,
+    //         Some("0.001"), // 数量
+    //         None,          // quote_order_qty
+    //         None,          // 客户端订单ID
+    //         None,          // recv_window
+    //     )
+    //     .await
+    // {
+    //     Ok(response) => {
+    //         info!("Market order placed successfully: {:?}", response);
+    //     }
+    //     Err(e) => {
+    //         log::error!("Failed to place market order: {}", e);
+    //     }
+    // }
 
     // 保持程序运行以维持连接
     tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
