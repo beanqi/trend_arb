@@ -60,6 +60,8 @@ async fn main() {
             BinanceL1DeepSocketClient::heartbeat().await;
         }
     });
+
+    BINANCE_TRADE_CLIENT.get_connection_status().await;
     // V. 保持程序运行
     tokio::signal::ctrl_c()
         .await
