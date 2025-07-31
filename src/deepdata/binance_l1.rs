@@ -185,7 +185,7 @@ impl BinanceL1DeepSocketClient {
         }
 
         let inc = (bid_price - formal_price) / formal_price;
-        if inc <= VOLATILE_THRESHOLD {
+        if inc < VOLATILE_THRESHOLD {
             return;
         }
 
