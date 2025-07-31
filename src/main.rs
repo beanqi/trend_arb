@@ -1,10 +1,7 @@
-use crate::{
-    deepdata::binance_l1::BinanceL1DeepSocketClient,
-    pairs::binance::ALL_BINANCE_SYMBOLS,
-};
+use crate::{deepdata::binance_l1::BinanceL1DeepSocketClient, pairs::binance::ALL_BINANCE_SYMBOLS};
 use chrono::Local;
 use std::{io::Write, sync::LazyLock};
-use trend_arb::trade::binance::BinanceWsTradeClient;
+use trend_arb::trade::binance::{BinanceWsTradeClient, OrderSide, TimeInForce};
 
 pub mod deepdata;
 pub mod pairs;
@@ -61,7 +58,18 @@ async fn main() {
         }
     });
 
-    BINANCE_TRADE_CLIENT.get_connection_status().await;
+    let res = BINANCE_TRADE_CLIENT
+        .place_limit_order(
+            "TRXUSDT",
+            OrderSide::Buy,
+            "0.1", // 价格
+            "51",  // 数量
+            Some(TimeInForce::Gtc),
+            None, // 客户端订单ID
+            None, // recv_window
+        )
+        .await;
+    log::info!("Limit order response: {:?}", res);
     // V. 保持程序运行
     tokio::signal::ctrl_c()
         .await
