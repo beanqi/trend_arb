@@ -17,7 +17,7 @@ use trend_arb::{
 
 use crate::BINANCE_TRADE_CLIENT;
 // 被定义为剧烈波动的阈值
-const VOLATILE_THRESHOLD: f64 = 0.05; // 5%
+const VOLATILE_THRESHOLD: f64 = 0.23; // 23%
 const MARKET_CODE: &str = "Binance";
 static SOCKET_URL: &'static str = "wss://stream.binance.com:9443/stream";
 static NB_CONN: LazyLock<Mutex<Option<Arc<TungWsConnection>>>> = LazyLock::new(|| Mutex::new(None)); // 连接对象管理工具
