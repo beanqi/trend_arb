@@ -215,7 +215,7 @@ impl BinanceL1DeepSocketClient {
                 symbol,
                 BnbOrderSide::Buy,
                 None,
-                Some("10.0"),
+                Some("5.0"),
                 None,
                 None,
             )
