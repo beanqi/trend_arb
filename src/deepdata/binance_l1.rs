@@ -7,6 +7,7 @@ use std::sync::{
     Arc, LazyLock,
     atomic::{AtomicI64, AtomicU64, Ordering},
 };
+use std::time::Duration;
 use tokio::sync::Mutex;
 use tungstenite::Message;
 
@@ -215,7 +216,7 @@ impl BinanceL1DeepSocketClient {
                 symbol,
                 BnbOrderSide::Buy,
                 None,
-                Some("5.0"),
+                Some("45.0"),
                 None,
                 None,
             )
@@ -227,6 +228,82 @@ impl BinanceL1DeepSocketClient {
             symbol,
             res
         );
+
+        // 下单成功后处理成交信息，并在1秒后卖出全部仓位
+        if let Ok(resp) = &res {
+            if let Some(order) = &resp.result {
+                // 成交数量（基础币种）
+                let executed_qty = order.executed_qty.clone();
+                let cumm_quote = order.cummulative_quote_qty.clone();
+                if let Some(fills) = &order.fills {
+                    for f in fills {
+                        log::warn!(
+                            "{}-websocket-{}-{}成交明细 price={} qty={} commission={} {} trade_id={}",
+                            MARKET_CODE,
+                            idx,
+                            symbol,
+                            f.price,
+                            f.qty,
+                            f.commission,
+                            f.commission_asset,
+                            f.trade_id
+                        );
+                    }
+                }
+                log::warn!(
+                    "{}-websocket-{}-{}买单成交: executed_qty={} quote_spent={}",
+                    MARKET_CODE,
+                    idx,
+                    symbol,
+                    executed_qty,
+                    cumm_quote
+                );
+
+                // 卖出逻辑：如果成交数量有效，则1秒后以市价全部卖出
+                let qty_for_sell = executed_qty.clone();
+                let symbol_for_sell = symbol.to_string();
+                if let Ok(qty_num) = qty_for_sell.parse::<f64>() {
+                    if qty_num > 0.0 {
+                        tokio::spawn(async move {
+                            tokio::time::sleep(Duration::from_secs(1)).await;
+                            let sell_res = BINANCE_TRADE_CLIENT
+                                .place_market_order(
+                                    &symbol_for_sell,
+                                    BnbOrderSide::Sell,
+                                    Some(&qty_for_sell),
+                                    None,
+                                    None,
+                                    None,
+                                )
+                                .await;
+                            log::warn!(
+                                "{}-websocket-{}-{}卖出结果: {:?}",
+                                MARKET_CODE,
+                                idx,
+                                symbol_for_sell,
+                                sell_res
+                            );
+                        });
+                    } else {
+                        log::warn!(
+                            "{}-websocket-{}-{}成交数量无效(<=0)，不执行卖出: {}",
+                            MARKET_CODE,
+                            idx,
+                            symbol,
+                            qty_for_sell
+                        );
+                    }
+                } else {
+                    log::warn!(
+                        "{}-websocket-{}-{}解析成交数量失败，字符串: {}",
+                        MARKET_CODE,
+                        idx,
+                        symbol,
+                        qty_for_sell
+                    );
+                }
+            }
+        }
     }
 }
 
