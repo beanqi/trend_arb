@@ -260,47 +260,73 @@ impl BinanceL1DeepSocketClient {
                 );
 
                 // 卖出逻辑：如果成交数量有效，则1秒后以市价全部卖出
-                let qty_for_sell = executed_qty.clone();
+                // 卖出数量 = 成交数量 * 0.985 （保留原始小数位）
                 let symbol_for_sell = symbol.to_string();
-                if let Ok(qty_num) = qty_for_sell.parse::<f64>() {
-                    if qty_num > 0.0 {
-                        tokio::spawn(async move {
-                            tokio::time::sleep(Duration::from_secs(1)).await;
-                            let sell_res = BINANCE_TRADE_CLIENT
-                                .place_market_order(
-                                    &symbol_for_sell,
-                                    BnbOrderSide::Sell,
-                                    Some(&qty_for_sell),
-                                    None,
-                                    None,
-                                    None,
-                                )
-                                .await;
+                let executed_qty_str = executed_qty.clone();
+                // 统计原小数位数
+                let decimal_places = executed_qty_str
+                    .split('.')
+                    .nth(1)
+                    .map(|s| s.len())
+                    .unwrap_or(0);
+                match executed_qty_str.parse::<rust_decimal::Decimal>() {
+                    Ok(qty_decimal) => {
+                        if qty_decimal > rust_decimal::Decimal::ZERO {
+                            // 乘以 0.985
+                            let factor = rust_decimal::Decimal::from_str_exact("0.985").unwrap();
+                            let mut sell_decimal = qty_decimal * factor;
+                            // 量化到原小数位（截断而不是四舍五入，以避免数量超过账户可用数量导致下单失败）
+                            sell_decimal = sell_decimal.trunc_with_scale(decimal_places as u32);
+                            // 确保在截断后仍然 > 0
+                            if sell_decimal > rust_decimal::Decimal::ZERO {
+                                let qty_for_sell = sell_decimal.normalize().to_string();
+                                tokio::spawn(async move {
+                                    tokio::time::sleep(Duration::from_secs(1)).await;
+                                    let sell_res = BINANCE_TRADE_CLIENT
+                                        .place_market_order(
+                                            &symbol_for_sell,
+                                            BnbOrderSide::Sell,
+                                            Some(&qty_for_sell),
+                                            None,
+                                            None,
+                                            None,
+                                        )
+                                        .await;
+                                    log::warn!(
+                                        "{}-websocket-{}-{}卖出结果: {:?} (sell_qty={})",
+                                        MARKET_CODE,
+                                        idx,
+                                        symbol_for_sell,
+                                        sell_res,
+                                        qty_for_sell
+                                    );
+                                });
+                            } else {
+                                log::warn!(
+                                    "{}-websocket-{}-{} 计算后的卖出数量<=0，跳过 (executed_qty={}, decimal_places={})",
+                                    MARKET_CODE, idx, symbol, executed_qty_str, decimal_places
+                                );
+                            }
+                        } else {
                             log::warn!(
-                                "{}-websocket-{}-{}卖出结果: {:?}",
+                                "{}-websocket-{}-{}成交数量无效(<=0)，不执行卖出: {}",
                                 MARKET_CODE,
                                 idx,
-                                symbol_for_sell,
-                                sell_res
+                                symbol,
+                                executed_qty_str
                             );
-                        });
-                    } else {
+                        }
+                    }
+                    Err(e) => {
                         log::warn!(
-                            "{}-websocket-{}-{}成交数量无效(<=0)，不执行卖出: {}",
+                            "{}-websocket-{}-{}解析成交数量失败，字符串: {}, err={}",
                             MARKET_CODE,
                             idx,
                             symbol,
-                            qty_for_sell
+                            executed_qty_str,
+                            e
                         );
                     }
-                } else {
-                    log::warn!(
-                        "{}-websocket-{}-{}解析成交数量失败，字符串: {}",
-                        MARKET_CODE,
-                        idx,
-                        symbol,
-                        qty_for_sell
-                    );
                 }
             }
         }
